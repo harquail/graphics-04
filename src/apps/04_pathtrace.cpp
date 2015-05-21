@@ -92,25 +92,72 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
     }
     
     // foreach surface
+    for (auto surface : scene->surfaces) {
         // skip if no emission from surface
+        if (surface->mat->ke == zero3f)
+            continue;
+        
+        vec3f lnorm;
+        float area;
+        auto lpos = zero3f;
+        vec2f texcoords;
         // todo: pick a point on the surface, grabbing normal, area, and texcoord
         // check if quad
+        if (surface->isquad == true) {
             // generate a 2d random number
+            auto num = rng->next_vec2f();
+            
             // compute light position, normal, area
+            lpos.x = (num.x - .5)*2*surface->radius;
+            lpos.y = (num.y - .5)*2*surface->radius;
+            lpos = transform_point_from_local(surface->frame, lpos);
+            
+            lnorm = transform_normal_from_local(surface->frame, z3f);
+            area = 4*pow(surface->radius,2);
             // set tex coords as random value got before
+            texcoords = num;
+        }
         // else if sphere
+        else {
             // generate a 2d random number
+            auto num = rng->next_vec2f();
+            
             // compute light position, normal, area
+            lpos = sample_direction_spherical_uniform(num);
+            lnorm = normalize(lpos);
+            area = 4*PI*pow(surface->radius, 2);
             // set tex coords as random value got before
+            texcoords = num;
+            
+        }
+        
         // get light emission from material and texture
-        // compute light direction
+        auto le = lookup_scaled_texture(surface->mat->ke, surface->mat->ke_txt, texcoords);
+        
+        // compute light direction from pos to lpos
+        auto l = normalize(lpos - pos);
+        
         // compute light response (ke * area * cos_of_light / dist^2)
+        auto cl = le * area * dot(lnorm,-l) / distSqr(pos,lpos);
+        
         // compute the material response (brdf*cos)
+        auto brdfcos = max(dot(norm,l),0.0f) * eval_brdf(kd, ks, n, v, l, norm, mf);
+        
         // multiply brdf and light
+        auto shade = cl * brdfcos;
+        
         // check for shadows and accumulate if needed
+        if(shade == zero3f) continue;
         // if shadows are enabled
+        if(scene->path_shadows) {
             // perform a shadow check and accumulate
-        // else just accumulate
+            if(not intersect_shadow(scene,ray3f::make_segment(pos,lpos))) c += shade;
+        } else {
+            // else just accumulate
+            c += shade;
+        }
+    }
+    
     
     // todo: sample the brdf for environment illumination if the environment is there
     // if scene->background is not zero3f
