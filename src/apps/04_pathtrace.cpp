@@ -161,13 +161,39 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
     
     // todo: sample the brdf for environment illumination if the environment is there
     // if scene->background is not zero3f
+    if (scene->background != zero3f) {
+                
         // pick direction and pdf
+        auto brdf = sample_brdf(kd, ks, n, v, norm, rng->next_vec2f(), rng->next_float());
+        auto text = eval_env(scene->background, scene->background_txt, brdf.first);
+        
         // compute the material response (brdf*cos)
+        auto brdfcos = max(dot(norm,brdf.first),0.0f) * eval_brdf(kd, ks, n, v, brdf.first, norm, mf);
+        
+        
+        
         // todo: accumulate response scaled by brdf*cos/pdf
+        auto shade = text * brdfcos / brdf.second;
+        
         // if material response not zero3f
+        if (brdfcos != zero3f) {
+            
             // if shadows are enabled
+            if (scene->path_shadows) {
                 // perform a shadow check and accumulate
-                // else just accumulate
+                if(not intersect_shadow(scene,ray3f::make_segment(pos, brdf.first))){
+                    c += shade;
+                }
+            }
+            // else just accumulate
+            else {
+                
+                c += shade;
+            }
+            
+        }
+    }
+
     
     // todo: sample the brdf for indirect illumination
     // if kd and ks are not zero3f and haven't reach max_depth
