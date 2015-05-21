@@ -1,3 +1,5 @@
+// Hi Nook and Kiko!
+
 #include "scene.h"
 #include "intersect.h"
 #include "montecarlo.h"
