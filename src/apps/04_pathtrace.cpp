@@ -219,7 +219,9 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
             
             auto randomR = rng->next_vec3f()*intersection.mat->blurry_reflection;
             
-            auto rr = ray3f(intersection.pos,reflect(ray.d+randomR,intersection.norm));
+            auto direction = normalize(reflect(ray.d+randomR,intersection.norm));
+            
+            auto rr = ray3f(intersection.pos,direction);
             
             c += intersection.mat->kr * pathtrace_ray(scene,rr,rng,depth+1);
 
