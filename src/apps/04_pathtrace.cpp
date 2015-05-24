@@ -31,8 +31,14 @@ vec3f eval_brdf(vec3f kd, vec3f ks, float n, vec3f v, vec3f l, vec3f norm, bool 
         auto h = normalize(v+l);
         return kd/pif + ks*(n+8)/(8*pif) * pow(max(0.0f,dot(norm,h)),n);
     } else {
-        put_your_code_here("Implement microfacet brdf");
-        return one3f; // <- placeholder
+        // help from this: http://simonstechblog.blogspot.com/2011/12/microfacet-brdf.html
+        auto h = normalize( v + l);
+        auto dist = (n + 2) / (2*PI) * pow(max(0.0, dot(h,norm)),n);
+        auto fresnel = ks + (one3f - ks)*pow(1 - dot(h,l), 5);
+        float geo = min(1.0f,2.0f * dot(h,norm) * dot(v,norm) / dot(v,h));
+        geo = min(geo,(2.0f * dot(h,norm)*dot(l,norm) / dot(l,h)));
+        auto p = (dist * geo * fresnel)/(4 * dot(l,norm) * dot(v,norm));
+        return p;
     }
 }
 
