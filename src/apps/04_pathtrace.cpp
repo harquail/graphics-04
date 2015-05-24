@@ -43,10 +43,9 @@ vec3f eval_brdf(vec3f kd, vec3f ks, float n, vec3f v, vec3f l, vec3f norm, bool 
 
 // evaluate the environment map
 vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
-    //#TODO
     vec2f uv;
-    uv.x = atan2f(dir.x,dir.z)/(2*PI);
-    uv.y = 1-acos(dir.y)/PI;
+    uv.x = atan2f(dir.x,dir.z)/(2.0f*pif);
+    uv.y = 1.0f-acos(dir.y)/pif;
     auto vector = lookup_scaled_texture(ke, ke_txt, uv);
     return vector;
 }
