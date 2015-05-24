@@ -203,10 +203,24 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
     
     // if the material has reflections
     if(not (intersection.mat->kr == zero3f)) {
-        // create the reflection ray
-        auto rr = ray3f(intersection.pos,reflect(ray.d,intersection.norm));
-        // accumulate the reflected light (recursive call) scaled by the material reflection
-        c += intersection.mat->kr * pathtrace_ray(scene,rr,rng,depth+1);
+        
+        if (intersection.mat->blurry_reflection == 0.0f){
+            // create the reflection ray
+            auto rr = ray3f(intersection.pos,reflect(ray.d,intersection.norm));
+            // accumulate the reflected light (recursive call) scaled by the material reflection
+            c += intersection.mat->kr * pathtrace_ray(scene,rr,rng,depth+1);
+        }
+        
+        else {
+            
+            auto randomR = rng->next_vec3f()*intersection.mat->blurry_reflection;
+            
+            auto rr = ray3f(intersection.pos,reflect(ray.d+randomR,intersection.norm));
+            
+            c += intersection.mat->kr * pathtrace_ray(scene,rr,rng,depth+1);
+
+        }
+
     }
     
     // return the accumulated color
