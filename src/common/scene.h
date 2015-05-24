@@ -26,6 +26,8 @@ struct Material {
     
     bool        double_sided = false;   // double-sided material
     bool        microfacet   = false;   // use microfacet formulation
+    
+    float   blurry_reflection = 0.0f;
 };
 
 // Keyframed Animation Data
