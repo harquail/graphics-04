@@ -28,3 +28,4 @@
 *.app
 
 xcode/
+*.DS_Store

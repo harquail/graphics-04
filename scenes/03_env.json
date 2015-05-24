@@ -1,6 +1,6 @@
 {
     "lookat_camera": { "from": [0,0.5,4] },
-    "meshes": [
+    "meshes": [ 
         {
             "json_mesh": "models/monkey_rot_subdiv.json",
             "frame": { "o": [-1.25,-1,-1] },

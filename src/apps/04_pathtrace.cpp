@@ -38,7 +38,12 @@ vec3f eval_brdf(vec3f kd, vec3f ks, float n, vec3f v, vec3f l, vec3f norm, bool 
 
 // evaluate the environment map
 vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
-    return ke; // <- placeholder
+    //#TODO
+    vec2f uv;
+    uv.x = atan2f(dir.x,dir.z)/(2*PI);
+    uv.y = 1-acos(dir.y)/PI;
+    auto vector = lookup_scaled_texture(ke, ke_txt, uv);
+    return vector;
 }
 
 // compute the color corresponing to a ray by pathtrace
@@ -162,14 +167,13 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
     // todo: sample the brdf for environment illumination if the environment is there
     // if scene->background is not zero3f
     if (scene->background != zero3f) {
-                
+        
         // pick direction and pdf
         auto brdf = sample_brdf(kd, ks, n, v, norm, rng->next_vec2f(), rng->next_float());
         auto text = eval_env(scene->background, scene->background_txt, brdf.first);
         
         // compute the material response (brdf*cos)
         auto brdfcos = max(dot(norm,brdf.first),0.0f) * eval_brdf(kd, ks, n, v, brdf.first, norm, mf);
-        
         
         
         // todo: accumulate response scaled by brdf*cos/pdf
