@@ -50,6 +50,7 @@ vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
 vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
     // get scene intersection
     auto intersection = intersect(scene,ray);
+    //printf("%d\n", depth);
     
     // if not hit, return background (looking up the texture by converting the ray direction to latlong around y)
     if(not intersection.hit) {
@@ -201,9 +202,21 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
     
     // todo: sample the brdf for indirect illumination
     // if kd and ks are not zero3f and haven't reach max_depth
+    if ( (kd != zero3f || ks != zero3f) && depth < scene->path_max_depth) {
+        
+        // printf("I am here!");
         // pick direction and pdf
+        auto brdf = sample_brdf(kd, ks, n, v, norm, rng->next_vec2f(), rng->next_float());
+        // auto text = eval_env(scene->background, scene->background_txt, brdf.first);
+        
         // compute the material response (brdf*cos)
+        auto brdfcos = max(dot(norm,brdf.first),0.0f) * eval_brdf(kd, ks, n, v, brdf.first, norm, mf);
+
         // accumulate recersively scaled by brdf*cos/pdf
+        c += brdfcos * pathtrace_ray(scene, ray, rng, depth+1)/ brdf.second;
+        //c += shade;
+        
+    }
     
     // if the material has reflections
     if(not (intersection.mat->kr == zero3f)) {
