@@ -213,11 +213,12 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
         auto brdf = sample_brdf(kd, ks, n, v, norm, rng->next_vec2f(), rng->next_float());
         // auto text = eval_env(scene->background, scene->background_txt, brdf.first);
         
+        ray3f ray2 = ray3f(pos,brdf.first);
         // compute the material response (brdf*cos)
         auto brdfcos = max(dot(norm,brdf.first),0.0f) * eval_brdf(kd, ks, n, v, brdf.first, norm, mf);
 
         // accumulate recersively scaled by brdf*cos/pdf
-        c += brdfcos * pathtrace_ray(scene, ray, rng, depth+1)/ brdf.second;
+        c += brdfcos * pathtrace_ray(scene, ray2, rng, depth+1)/ brdf.second;
         //c += shade;
         
     }
