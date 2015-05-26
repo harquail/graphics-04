@@ -19,6 +19,8 @@ void pathtrace(Scene* scene, image3f* image, RngImage* rngs, int offset_row, int
 vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, bool tile = false) {
     if(not texture) return value;
     
+    bool filtering = false;
+    
     // texture tiling
     if(tile){
         auto i = (int)(uv.x*(texture->width()-1));
@@ -33,13 +35,35 @@ vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, bool tile =
         if (j < 0){
             j = j + texture->width();
         }
-        return value * texture->at(i,j);
+        
+//        auto i = (int)(uv.x*(texture->width()-1));
+//        auto j = (int)(uv.y*(texture->height()-1));
+//
+        if(filtering){
+        auto s = uv.x * (texture->width()-1) - i;
+        auto t = uv.y * (texture->height()-1) - j;
+//
+        auto i2 = i + 1;
+        auto j2 = j + 1;
+//
+        auto c1 = texture->at(i,j)*(1-s)*(1-t);
+        auto c2 = texture->at(i, j2)*(1-s)*t;
+        auto c3 = texture->at(i2,j)*s*(1-t);
+        auto c4 = texture->at(i2,j2)*s*t;
+        auto c = c1 + c2 + c3 + c4;
+//
+            return value * c;
+        }
+        else{
+            return value * texture->at(i,j);
+        }
+        
     }
     else{
-    // for now, simply clamp texture coords
-    auto u = clamp(uv.x, 0.0f, 1.0f);
-    auto v = clamp(uv.y, 0.0f, 1.0f);
-    return value * texture->at(u*(texture->width()-1), v*(texture->height()-1));
+        // for now, simply clamp texture coords
+        auto u = clamp(uv.x, 0.0f, 1.0f);
+        auto v = clamp(uv.y, 0.0f, 1.0f);
+        return value * texture->at(u*(texture->width()-1), v*(texture->height()-1));
     }
 }
 
@@ -79,7 +103,6 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
         return eval_env(scene->background, scene->background_txt, ray.d);
     }
     
-    // setup variables for shorter code
     auto pos = intersection.pos;
     auto norm = intersection.norm;
     auto v = -ray.d;
