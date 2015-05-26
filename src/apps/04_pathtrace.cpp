@@ -19,24 +19,42 @@ void pathtrace(Scene* scene, image3f* image, RngImage* rngs, int offset_row, int
 vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, bool tile = false) {
     if(not texture) return value;
     
+    // texture tiling
+    if(tile){
+        auto i = (int)(uv.x*(texture->width()-1));
+        auto j = (int)(uv.y*(texture->height()-1));
+        
+        i = i % texture->width();
+        if (i < 0){
+            i = i + texture->width();
+        }
+        
+        j = j % texture->width();
+        if (j < 0){
+            j = j + texture->width();
+        }
+        return value * texture->at(i,j);
+    }
+    else{
     // for now, simply clamp texture coords
     auto u = clamp(uv.x, 0.0f, 1.0f);
     auto v = clamp(uv.y, 0.0f, 1.0f);
     return value * texture->at(u*(texture->width()-1), v*(texture->height()-1));
+    }
 }
 
 // compute the brdf
 vec3f eval_brdf(vec3f kd, vec3f ks, float n, vec3f v, vec3f l, vec3f norm, bool microfacet) {
     if (not microfacet) {
-        auto h = normalize(v+l);
+            auto h = normalize(v+l);
         return kd/pif + ks*(n+8)/(8*pif) * pow(max(0.0f,dot(norm,h)),n);
     } else {
         // help from this: http://simonstechblog.blogspot.com/2011/12/microfacet-brdf.html
-        auto h = normalize( v + l);
-        auto dist = (n + 2.0f) / (2.0f*pif) * pow(max(0.0f, dot(norm,h)),n);
-        auto fresnel = ks + (one3f - ks)*pow(1.0f - dot(h,l), 5.0f);
-        float geo = min(1.0f,2.0f * dot(h,norm) * dot(v,norm) / dot(v,h));
-        geo = min(geo,(2.0f * dot(h,norm)*dot(l,norm) / dot(l,h)));
+            auto h = normalize( v + l);
+            auto dist = (n + 2.0f) / (2.0f*pif) * pow(max(0.0f, dot(norm,h)),n);
+            auto fresnel = ks + (one3f - ks)*pow(1.0f - dot(h,l), 5.0f);
+            float geo = min(1.0f,2.0f * dot(h,norm) * dot(v,norm) / dot(v,h));
+            geo = min(geo,(2.0f * dot(h,norm)*dot(l,norm) / dot(l,h)));
         return (dist * geo * fresnel)/(4.0f * dot(l,norm) * dot(v,norm));
     }
 }
@@ -45,7 +63,7 @@ vec3f eval_brdf(vec3f kd, vec3f ks, float n, vec3f v, vec3f l, vec3f norm, bool 
 vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
     vec2f uv;
     uv.x = atan2f(dir.x,dir.z)/(2.0f*pif);
-    uv.y = 1.0f-acos(dir.y)/pif;
+    uv.y = 1.0f-acosf(dir.y)/pif;
     auto vector = lookup_scaled_texture(ke, ke_txt, uv);
     return vector;
 }
@@ -67,9 +85,9 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
     auto v = -ray.d;
     
     // compute material values by looking up textures
-    auto ke = lookup_scaled_texture(intersection.mat->ke, intersection.mat->ke_txt, intersection.texcoord);
-    auto kd = lookup_scaled_texture(intersection.mat->kd, intersection.mat->kd_txt, intersection.texcoord);
-    auto ks = lookup_scaled_texture(intersection.mat->ks, intersection.mat->ks_txt, intersection.texcoord);
+    auto ke = lookup_scaled_texture(intersection.mat->ke, intersection.mat->ke_txt, intersection.texcoord, true);
+    auto kd = lookup_scaled_texture(intersection.mat->kd, intersection.mat->kd_txt, intersection.texcoord, true);
+    auto ks = lookup_scaled_texture(intersection.mat->ks, intersection.mat->ks_txt, intersection.texcoord, true);
     auto n = intersection.mat->n;
     auto mf = intersection.mat->microfacet;
     
@@ -199,7 +217,6 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
                 
                 c += shade;
             }
-            
         }
     }
 
