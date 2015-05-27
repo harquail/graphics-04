@@ -20,6 +20,6 @@
     ],
     "background": [1,1,1],
     "background_txt": "models/pisa_latlong.pfm",
-    "image_samples": 15,
+    "image_samples": 7,
     "path_max_depth": 0
 }

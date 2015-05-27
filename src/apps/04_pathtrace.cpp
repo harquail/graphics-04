@@ -19,7 +19,7 @@ void pathtrace(Scene* scene, image3f* image, RngImage* rngs, int offset_row, int
 vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, bool tile = false) {
     if(not texture) return value;
     
-    bool filtering = false;
+    bool filtering = true;
     
     // texture tiling
     if(tile){
@@ -33,7 +33,7 @@ vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, bool tile =
         
         j = j % texture->width();
         if (j < 0){
-            j = j + texture->width();
+            j = j + texture->height();
         }
         
 //        auto i = (int)(uv.x*(texture->width()-1));
@@ -80,6 +80,7 @@ vec3f eval_brdf(vec3f kd, vec3f ks, float n, vec3f v, vec3f l, vec3f norm, bool 
             float geo = min(1.0f,2.0f * dot(h,norm) * dot(v,norm) / dot(v,h));
             geo = min(geo,(2.0f * dot(h,norm)*dot(l,norm) / dot(l,h)));
         return (dist * geo * fresnel)/(4.0f * dot(l,norm) * dot(v,norm));
+        
     }
 }
 
@@ -87,8 +88,8 @@ vec3f eval_brdf(vec3f kd, vec3f ks, float n, vec3f v, vec3f l, vec3f norm, bool 
 vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
     vec2f uv;
     uv.x = atan2f(dir.x,dir.z)/(2.0f*pif);
-    uv.y = 1.0f-acosf(dir.y)/pif;
-    auto vector = lookup_scaled_texture(ke, ke_txt, uv);
+    uv.y = 1.0f-acos(dir.y)/pif;
+    auto vector = lookup_scaled_texture(ke, ke_txt, uv, false);
     return vector;
 }
 
@@ -108,9 +109,9 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
     auto v = -ray.d;
     
     // compute material values by looking up textures
-    auto ke = lookup_scaled_texture(intersection.mat->ke, intersection.mat->ke_txt, intersection.texcoord, true);
-    auto kd = lookup_scaled_texture(intersection.mat->kd, intersection.mat->kd_txt, intersection.texcoord, true);
-    auto ks = lookup_scaled_texture(intersection.mat->ks, intersection.mat->ks_txt, intersection.texcoord, true);
+    auto ke = lookup_scaled_texture(intersection.mat->ke, intersection.mat->ke_txt, intersection.texcoord, false);
+    auto kd = lookup_scaled_texture(intersection.mat->kd, intersection.mat->kd_txt, intersection.texcoord, false);
+    auto ks = lookup_scaled_texture(intersection.mat->ks, intersection.mat->ks_txt, intersection.texcoord, false);
     auto n = intersection.mat->n;
     auto mf = intersection.mat->microfacet;
     
@@ -173,9 +174,10 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
             // generate a 2d random number
             auto num = rng->next_vec2f();
             
+            vec2f uv = (num - vec2f(0.5, 0.5))*2;
             // compute light position, normal, area
-            lpos = sample_direction_spherical_uniform(num);
-            lnorm = normalize(lpos);
+            lpos = sample_direction_spherical_uniform(uv);
+            lnorm = normalize(lpos - surface->frame.o);
             area = 4*PI*pow(surface->radius, 2);
             // set tex coords as random value got before
             texcoords = num;
@@ -231,9 +233,15 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
             // if shadows are enabled
             if (scene->path_shadows) {
                 // perform a shadow check and accumulate
-                if(not intersect_shadow(scene,ray3f::make_segment(pos, brdf.first))){
+                
+                if(!intersect(scene, ray3f(pos,brdf.first)).hit){
                     c += shade;
+
                 }
+//                if(not intersect_shadow(scene,ray3f::make_segment(pos, brdf.first))){
+//                    c += shade;
+//                }
+                
             }
             // else just accumulate
             else {
@@ -251,7 +259,7 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
         // printf("I am here!");
         // pick direction and pdf
         auto brdf = sample_brdf(kd, ks, n, v, norm, rng->next_vec2f(), rng->next_float());
-        // auto text = eval_env(scene->background, scene->background_txt, brdf.first);
+//         auto text = eval_env(scene->background, scene->background_txt, brdf.first);
         
         ray3f ray2 = ray3f(pos,brdf.first);
         
