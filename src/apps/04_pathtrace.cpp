@@ -67,17 +67,19 @@ vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, vec3f posit
         auto j = (int)(uv.y*(texture->height()-1));
         
         i = i % texture->width();
-        if (i < 0){
-            i = i + texture->width();
-        }
+//        if (i < 0){
+//            printf("hello");
+//            i = i + texture->width();
+//        }
         
         j = j % texture->width();
-        if (j < 0){
-            j = j + texture->height();
-        }
+//        if (j < 0){
+//            printf("there");
+//
+//            j = j + texture->height();
+//        }
         
-//        auto i = (int)(uv.x*(texture->width()-1));
-//        auto j = (int)(uv.y*(texture->height()-1));
+        
 //
         if(filtering){
         auto s = uv.x * (texture->width()-1) - i;
@@ -128,12 +130,14 @@ vec3f eval_brdf(vec3f kd, vec3f ks, float n, vec3f v, vec3f l, vec3f norm, bool 
 
 // evaluate the environment map
 vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
+  
     vec2f uv;
-    uv.x = atan2f(dir.x,dir.z)/(2.0f*pif);
-    uv.y = 1.0f-acos(dir.y)/pif;
-    auto vector = lookup_scaled_texture(ke, ke_txt, uv, false);
+    uv.x = atan2f(dir.x,dir.z)/(2*pif);
+    uv.y = 1 - acos(dir.y)/pif;
+    auto vector = lookup_scaled_texture(ke, ke_txt, uv, true);
     return vector;
 }
+
 
 // compute the color corresponing to a ray by pathtrace
 vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
@@ -151,9 +155,9 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
     auto v = -ray.d;
     
     // compute material values by looking up textures
-    auto ke = lookup_scaled_texture(intersection.mat->ke, intersection.mat->ke_txt, intersection.texcoord, false);
-    auto kd = lookup_scaled_texture(intersection.mat->kd, intersection.mat->kd_txt, intersection.texcoord, false);
-    auto ks = lookup_scaled_texture(intersection.mat->ks, intersection.mat->ks_txt, intersection.texcoord, false);
+    auto ke = lookup_scaled_texture(intersection.mat->ke, intersection.mat->ke_txt, intersection.texcoord, true);
+    auto kd = lookup_scaled_texture(intersection.mat->kd, intersection.mat->kd_txt, intersection.texcoord, true);
+    auto ks = lookup_scaled_texture(intersection.mat->ks, intersection.mat->ks_txt, intersection.texcoord, true);
     auto n = intersection.mat->n;
     auto mf = intersection.mat->microfacet;
     
