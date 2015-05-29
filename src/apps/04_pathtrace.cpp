@@ -16,10 +16,50 @@ void pathtrace(Scene* scene, image3f* image, RngImage* rngs, int offset_row, int
 
 
 // lookup texture value
-vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, bool tile = false) {
+vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, vec3f position, bool tile = false, image3f* big, image3f* mid, image3f* small) {
+    
     if(not texture) return value;
     
     bool filtering = true;
+    bool mipmap = true;
+    image3f* mixtexture;
+    
+    if (mipmap){
+        
+        vec3f pos = normalize(position);
+        float dist = pos.z;
+        
+        if (dist<0.5){
+            mixtexture = big;
+        }
+        
+        else if (dist<1.0 && dist>0.5){
+            mixtexture = mid;
+        }
+        
+        else {
+            mixtexture = small;
+        }
+        
+        auto i = (int)(uv.x*(texture->width()-1));
+        auto j = (int)(uv.y*(texture->height()-1));
+        
+        auto s = uv.x * (texture->width()-1) - i;
+        auto t = uv.y * (texture->height()-1) - j;
+        //
+        auto i2 = i + 1;
+        auto j2 = j + 1;
+        //
+        auto c1 = texture->at(i,j)*(1-s)*(1-t);
+        auto c2 = texture->at(i, j2)*(1-s)*t;
+        auto c3 = texture->at(i2,j)*s*(1-t);
+        auto c4 = texture->at(i2,j2)*s*t;
+        
+        auto c = c1 + c2 + c3 + c4;
+        //
+        return value * c;
+        
+    }
     
     // texture tiling
     if(tile){
@@ -59,6 +99,8 @@ vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, bool tile =
         }
         
     }
+    
+    
     else{
         // for now, simply clamp texture coords
         auto u = clamp(uv.x, 0.0f, 1.0f);
