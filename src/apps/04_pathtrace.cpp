@@ -16,7 +16,7 @@ void pathtrace(Scene* scene, image3f* image, RngImage* rngs, int offset_row, int
 
 
 // lookup texture value
-vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, vec3f position, bool tile = false, image3f* big, image3f* mid, image3f* small) {
+vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, vec3f position, image3f* big, image3f* mid, image3f* small, bool tile = false) {
     
     if(not texture) return value;
     
@@ -134,7 +134,13 @@ vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
     vec2f uv;
     uv.x = atan2f(dir.x,dir.z)/(2*pif);
     uv.y = 1 - acos(dir.y)/pif;
-    auto vector = lookup_scaled_texture(ke, ke_txt, uv, true);
+    
+    vec3f position = vec3f();
+    image3f big = image3f();
+    image3f mid = image3f();
+    image3f small = image3f();
+    
+    auto vector = lookup_scaled_texture(ke, ke_txt, uv, position, &big, &mid, &small, true);
     return vector;
 }
 
@@ -154,10 +160,15 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
     auto norm = intersection.norm;
     auto v = -ray.d;
     
+    //vec3f position = intersection.pos;
+    image3f big = *intersection.mat->kd_big;
+    image3f mid = *intersection.mat->kd_mid;
+    image3f small = *intersection.mat->kd_small;
+    
     // compute material values by looking up textures
-    auto ke = lookup_scaled_texture(intersection.mat->ke, intersection.mat->ke_txt, intersection.texcoord, true);
-    auto kd = lookup_scaled_texture(intersection.mat->kd, intersection.mat->kd_txt, intersection.texcoord, true);
-    auto ks = lookup_scaled_texture(intersection.mat->ks, intersection.mat->ks_txt, intersection.texcoord, true);
+    auto ke = lookup_scaled_texture(intersection.mat->ke, intersection.mat->ke_txt, intersection.texcoord, pos, &big, &mid, &small, true);
+    auto kd = lookup_scaled_texture(intersection.mat->kd, intersection.mat->kd_txt, intersection.texcoord, pos, &big, &mid, &small, true);
+    auto ks = lookup_scaled_texture(intersection.mat->ks, intersection.mat->ks_txt, intersection.texcoord, pos, &big, &mid, &small, true);
     auto n = intersection.mat->n;
     auto mf = intersection.mat->microfacet;
     
@@ -231,7 +242,7 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
         }
         
         // get light emission from material and texture
-        auto le = lookup_scaled_texture(surface->mat->ke, surface->mat->ke_txt, texcoords);
+        auto le = lookup_scaled_texture(surface->mat->ke, surface->mat->ke_txt, texcoords, pos, &big, &mid, &small);
         
         // compute light direction from pos to lpos
         auto l = normalize(lpos - pos);

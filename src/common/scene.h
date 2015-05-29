@@ -19,6 +19,11 @@ struct Material {
     vec3f       ke = zero3f;            // emission coefficient
     
     image3f*    kd_txt   = nullptr;     // diffuse texture
+    
+    image3f*    kd_small   = nullptr;     // diffuse texture
+    image3f*    kd_mid   = nullptr;     // diffuse texture
+    image3f*    kd_big   = nullptr;     // diffuse texture
+    
     image3f*    ks_txt   = nullptr;     // specular texture
     image3f*    kr_txt   = nullptr;     // reflection texture
     image3f*    norm_txt = nullptr;     // normal texture
