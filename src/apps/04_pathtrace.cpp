@@ -31,35 +31,35 @@ vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, vec3f posit
         vec3f pos = normalize(position);
         float dist = pos.z;
         
-        if (dist<0.5){
+        if (dist<0.3){
 //            print(" \n");
-            mixtexture = big;
+            mixtexture = small;
         }
         
-        else if (dist<1.0 && dist>0.5){
+        else if (dist<0.6 && dist>=0.3){
 //            print(" \n");
             mixtexture = mid;
         }
         
         else {
 //            print(" \n");
-            mixtexture = small;
+            mixtexture = big;
         }
         
-        auto i = (int)(uv.x*(texture->width()-1));
-        auto j = (int)(uv.y*(texture->height()-1));
+        auto i = (int)(uv.x*(mixtexture->width()-1));
+        auto j = (int)(uv.y*(mixtexture->height()-1));
 //        print(" \n");
-        auto s = uv.x * (texture->width()-1) - i;
-        auto t = uv.y * (texture->height()-1) - j;
+        auto s = uv.x * (mixtexture->width()-1) - i;
+        auto t = uv.y * (mixtexture->height()-1) - j;
         //
         auto i2 = i + 1;
         auto j2 = j + 1;
         //
 //        print(" \n");
-        auto c1 = texture->at(i,j)*(1-s)*(1-t);
-        auto c2 = texture->at(i, j2)*(1-s)*t;
-        auto c3 = texture->at(i2,j)*s*(1-t);
-        auto c4 = texture->at(i2,j2)*s*t;
+        auto c1 = mixtexture->at(i,j)*(1-s)*(1-t);
+        auto c2 = mixtexture->at(i, j2)*(1-s)*t;
+        auto c3 = mixtexture->at(i2,j)*s*(1-t);
+        auto c4 = mixtexture->at(i2,j2)*s*t;
         
         auto c = c1 + c2 + c3 + c4;
         //
