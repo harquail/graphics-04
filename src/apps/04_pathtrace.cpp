@@ -14,42 +14,48 @@ bool parallel_pathtrace = true;
 image3f pathtrace(Scene* scene, bool multithread);
 void pathtrace(Scene* scene, image3f* image, RngImage* rngs, int offset_row, int skip_row, bool verbose);
 
+#define print(a, args...) printf("%s(%s:%d) " a,  __func__,__FILE__, __LINE__, ##args)
 
 // lookup texture value
 vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, vec3f position, image3f* big, image3f* mid, image3f* small, bool tile = false) {
-    
+//    print(" \n");
     if(not texture) return value;
-    
+//    print(" \n");
     bool filtering = true;
+//    print(" \n");
     bool mipmap = true;
     image3f* mixtexture;
-    
+//    print(" \n");
     if (mipmap){
-        
+//        print(" \n");
         vec3f pos = normalize(position);
         float dist = pos.z;
         
         if (dist<0.5){
+//            print(" \n");
             mixtexture = big;
         }
         
         else if (dist<1.0 && dist>0.5){
+//            print(" \n");
             mixtexture = mid;
         }
         
         else {
+//            print(" \n");
             mixtexture = small;
         }
         
         auto i = (int)(uv.x*(texture->width()-1));
         auto j = (int)(uv.y*(texture->height()-1));
-        
+//        print(" \n");
         auto s = uv.x * (texture->width()-1) - i;
         auto t = uv.y * (texture->height()-1) - j;
         //
         auto i2 = i + 1;
         auto j2 = j + 1;
         //
+//        print(" \n");
         auto c1 = texture->at(i,j)*(1-s)*(1-t);
         auto c2 = texture->at(i, j2)*(1-s)*t;
         auto c3 = texture->at(i2,j)*s*(1-t);
@@ -57,6 +63,7 @@ vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, vec3f posit
         
         auto c = c1 + c2 + c3 + c4;
         //
+//        print(" \n");
         return value * c;
         
     }
@@ -139,7 +146,7 @@ vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
     image3f big = image3f();
     image3f mid = image3f();
     image3f small = image3f();
-    
+//    print(" \n");
     auto vector = lookup_scaled_texture(ke, ke_txt, uv, position, &big, &mid, &small, true);
     return vector;
 }
@@ -155,20 +162,41 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
     if(not intersection.hit) {
         return eval_env(scene->background, scene->background_txt, ray.d);
     }
-    
+//    print(" \n");
     auto pos = intersection.pos;
     auto norm = intersection.norm;
     auto v = -ray.d;
-    
+//    print("pos: (%f,%f,%f)\n",pos.x,pos.y,pos.z);
+//    print("mat doubled: %d \n",intersection.mat->double_sided);
+//    print(" %i \n",intersection.mat->kd_big->width());
+
     //vec3f position = intersection.pos;
-    image3f big = *intersection.mat->kd_big;
-    image3f mid = *intersection.mat->kd_mid;
-    image3f small = *intersection.mat->kd_small;
+    image3f big, mid, small = image3f();
+    if(intersection.mat->kd_big  && intersection.mat->kd_mid && intersection.mat->kd_small){
+        
+        big = *intersection.mat->kd_big;
+//        print(" \n");
+        mid = *intersection.mat->kd_mid;
+//        print(" \n");
+        small = *intersection.mat->kd_small;
+        
+    }
+    else{
+        big = *intersection.mat->kd_txt;
+        small = *intersection.mat->kd_txt;
+        mid = *intersection.mat->kd_txt;
+
+    }
+
     
     // compute material values by looking up textures
+//    print(" \n");
     auto ke = lookup_scaled_texture(intersection.mat->ke, intersection.mat->ke_txt, intersection.texcoord, pos, &big, &mid, &small, true);
+//    print(" \n");
     auto kd = lookup_scaled_texture(intersection.mat->kd, intersection.mat->kd_txt, intersection.texcoord, pos, &big, &mid, &small, true);
+//    print(" \n");
     auto ks = lookup_scaled_texture(intersection.mat->ks, intersection.mat->ks_txt, intersection.texcoord, pos, &big, &mid, &small, true);
+//    print(" \n");
     auto n = intersection.mat->n;
     auto mf = intersection.mat->microfacet;
     
