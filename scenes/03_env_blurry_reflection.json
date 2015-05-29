@@ -19,7 +19,7 @@
         }
     ],
     "background": [1,1,1],
-    "background_txt": "models/pisa_latlong.pfm",
+    "background_txt": "models/glacier_latlong.png",
     "image_samples": 15,
     "path_max_depth": 0
 }

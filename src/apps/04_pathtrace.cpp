@@ -21,9 +21,9 @@ vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, vec3f posit
 //    print(" \n");
     if(not texture) return value;
 //    print(" \n");
-    bool filtering = true;
+    bool filtering = false;
 //    print(" \n");
-    bool mipmap = true;
+    bool mipmap = false;
     image3f* mixtexture;
 //    print(" \n");
     if (mipmap){
