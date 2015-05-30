@@ -74,17 +74,17 @@ vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, vec3f posit
         auto j = (int)(uv.y*(texture->height()-1));
         
         i = i % texture->width();
-//        if (i < 0){
+        if (i < 0){
 //            printf("hello");
-//            i = i + texture->width();
-//        }
+            i = i + texture->width();
+        }
         
         j = j % texture->width();
-//        if (j < 0){
+        if (j < 0){
 //            printf("there");
-//
-//            j = j + texture->height();
-//        }
+
+            j = j + texture->height();
+        }
         
         
 //
@@ -139,8 +139,8 @@ vec3f eval_brdf(vec3f kd, vec3f ks, float n, vec3f v, vec3f l, vec3f norm, bool 
 vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
   
     vec2f uv;
-    uv.x = atan2f(dir.x,dir.z)/(2*pif);
-    uv.y = 1 - acos(dir.y)/pif;
+    uv.x = atan2f(dir.x,dir.z)/(2.0*pif);
+    uv.y = 1.0 - acos(dir.y)/pif;
     
     vec3f position = vec3f();
     image3f big = image3f();
@@ -272,7 +272,7 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
         }
         
         // get light emission from material and texture
-        auto le = lookup_scaled_texture(surface->mat->ke, surface->mat->ke_txt, texcoords, pos, big, mid, small);
+        auto le = lookup_scaled_texture(surface->mat->ke, surface->mat->ke_txt, texcoords, pos, big, mid, small, true);
         
         // compute light direction from pos to lpos
         auto l = normalize(lpos - pos);
