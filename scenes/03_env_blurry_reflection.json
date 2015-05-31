@@ -1,5 +1,5 @@
 {
-    "lookat_camera": { "from": [0,0.5,4] },
+    "lookat_camera": { "from": [0,2,-10] },
     "meshes": [
         {
             "json_mesh": "models/monkey_rot_subdiv.json",
@@ -15,11 +15,11 @@
         {
             "frame": { "o": [0,-1,0], "x": [1,0,0], "y": [0,0,-1], "z": [0,1,0] },
             "radius":  10, "isquad": true,
-            "material": { "kd": [1,1,1], "ks": [0,0,0], "kr": [1,1,1], "n": 100, "blurry_reflection": 0.2 }
+            "material": { "kd": [0.1,0.1,0.1], "ks": [1,1,1], "kr": [1,1,1], "n": 100, "blurry_reflection": 0.2 }
         }
     ],
     "background": [1,1,1],
-    "background_txt": "models/pisa_latlong.pfm",
-    "image_samples": 15,
+    "background_txt": "models/outside_latlong.png",
+    "image_samples": 30,
     "path_max_depth": 0
 }
