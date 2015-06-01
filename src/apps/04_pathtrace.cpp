@@ -138,7 +138,7 @@ vec3f eval_brdf(vec3f kd, vec3f ks, float n, vec3f v, vec3f l, vec3f norm, bool 
 
 // evaluate the environment map
 vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
-  
+    
     vec2f uv;
     uv.x = atan2f(dir.x,dir.z)/(2.0*pif);
     uv.y = 1.0 - acos(dir.y)/pif;
@@ -147,7 +147,7 @@ vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
     image3f big = image3f();
     image3f mid = image3f();
     image3f small = image3f();
-//    print(" \n");
+
     auto vector = lookup_scaled_texture(ke, ke_txt, uv, position, &big, &mid, &small, true);
     return vector;
 }
@@ -321,15 +321,9 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
             // if shadows are enabled
             if (scene->path_shadows) {
                 // perform a shadow check and accumulate
-                
                 if(!intersect(scene, ray3f(pos,brdf.first)).hit){
                     c += shade;
-
                 }
-//                if(not intersect_shadow(scene,ray3f::make_segment(pos, brdf.first))){
-//                    c += shade;
-//                }
-                
             }
             // else just accumulate
             else {
