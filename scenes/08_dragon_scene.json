@@ -24,8 +24,8 @@
     ],
     "background": [1,1,1],
     "background_txt": "models/glacier_latlong_2.png",
-    "image_samples": 40,
-    "image_width": 5120,
-    "image_height": 5120,
+    "image_samples": 35,
+    "image_width": 3800,
+    "image_height": 3800,
     "path_max_depth": 2
 }

@@ -27,6 +27,6 @@
         { "frame": { "o": [4,12,5] }, "intensity": [60,60,60] }
     ],
     "background": [0,0,0],
-    "image_samples": 30,
+    "image_samples": 5,
     "path_max_depth": 0
 }
