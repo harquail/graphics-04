@@ -10,5 +10,6 @@
     ],
     "background": [0,0,0],
     "image_samples": 32,
-    "path_max_depth": 2
+    "path_max_depth": 2,
+    "russian_roulette" : false
 }

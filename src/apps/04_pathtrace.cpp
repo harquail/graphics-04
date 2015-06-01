@@ -26,6 +26,7 @@ vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, vec3f posit
     bool mipmap = false;
     image3f* mixtexture;
 //    print(" \n");
+    
     if (mipmap){
 //        print(" \n");
         vec3f pos = normalize(position);
@@ -137,7 +138,7 @@ vec3f eval_brdf(vec3f kd, vec3f ks, float n, vec3f v, vec3f l, vec3f norm, bool 
 
 // evaluate the environment map
 vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
-  
+    
     vec2f uv;
     uv.x = atan2f(dir.x,dir.z)/(2.0*pif);
     uv.y = 1.0 - acos(dir.y)/pif;
@@ -146,7 +147,7 @@ vec3f eval_env(vec3f ke, image3f* ke_txt, vec3f dir) {
     image3f big = image3f();
     image3f mid = image3f();
     image3f small = image3f();
-//    print(" \n");
+
     auto vector = lookup_scaled_texture(ke, ke_txt, uv, position, &big, &mid, &small, true);
     return vector;
 }
@@ -320,15 +321,9 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
             // if shadows are enabled
             if (scene->path_shadows) {
                 // perform a shadow check and accumulate
-                
                 if(!intersect(scene, ray3f(pos,brdf.first)).hit){
                     c += shade;
-
                 }
-//                if(not intersect_shadow(scene,ray3f::make_segment(pos, brdf.first))){
-//                    c += shade;
-//                }
-                
             }
             // else just accumulate
             else {
@@ -354,13 +349,18 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
         // compute the material response (brdf*cos)
         auto brdfcos = max(dot(norm,brdf.first),0.0f) * eval_brdf(kd, ks, n, v, brdf.first, norm, mf);
         
-        auto theta = .3; // russian roulette
-        auto rand = rng->next_float(); // russian roulette
-        if (rand <= theta) { // russian roulette
-        c += brdfcos * pathtrace_ray(scene, ray, rng, depth+1)/ brdf.second;
-        c /= (1-theta); // russian roulette
-        } // russian roulette
-
+        if(scene->russianRoulette){
+            
+            auto theta = .3; // russian roulette
+            auto rand = rng->next_float(); // russian roulette
+            if (rand <= theta) { // russian roulette
+                c += brdfcos * pathtrace_ray(scene, ray, rng, depth+1)/ brdf.second;
+                c /= (1-theta); // russian roulette
+            } // russian roulette
+        }
+        else{
+            c += brdfcos * pathtrace_ray(scene, ray, rng, depth+1)/ brdf.second;
+        }
 
         // accumulate recersively scaled by brdf*cos/pdf
         c += brdfcos * pathtrace_ray(scene, ray2, rng, depth+1)/ brdf.second;
