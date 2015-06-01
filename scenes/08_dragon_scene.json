@@ -1,0 +1,39 @@
+{
+    "lookat_camera": { "from": [5,1,40] },
+    "meshes": [
+        {
+            "json_mesh": "models/dragon.json",
+            "frame": { "o": [1,2,-15], "x": [-1,-1,0], "y": [0,0,1], "z": [-0.5,1,-0.1] },
+            "material": { "kd": [0.5,0.7,0.5], "ks": [0.3,0.3,0.3], "n": 100 , "kd_txt": "models/skin.png" }
+        },
+        {
+            "json_mesh": "models/castle.json",
+            "frame": { "o": [15,-3.4,-30], "x": [-1,-1,0], "y": [0,0,1], "z": [0,1,0] },
+            "material": { "kd": [0.5,0.7,0.5], "ks": [0.3,0.3,0.3], "n": 100 , "kd_txt": "models/skin.png" }
+        },
+        {
+            "pos": [2,2,1, -5,2,1, -5,-2,1, 5,-2,1],
+            "norm": [0,0,1, 0,0,1, 0,0,1, 0,0,1],
+            "texcoord": [5,5, 0,5, 0,0, 5,0],
+            "quad": [0,1,2,3],
+            "material": {"kd": [1,1,1], "ks": [0,0,0], "n": 100,
+                "kd_txt": "models/grid_colored.png"
+            }
+        },
+        {
+            "frame": { "o": [-10,-4,0], "x":[1,0,0], "y":[0,0,-1], "z":[0,1,0]},
+            "pos": [ 100,100,0, -100,100,0, -100,-100,0, 100,-100,0 ],
+            "norm": [ 0,0,1, 0,0,1, 0,0,1, 0,0,1 ],
+            "texcoord": [2,2, 0,2, 0,0, 2,0],
+            "quad": [ 0,1,2,3 ],
+            "material": { "kd": [0.1,0.1,0.1], "ks": [0.2,0.2,0.2], "n": 100, "kr": [0.5,0.5,0.5], "kd_txt": "models/snow.png", "blurry_reflection": 0.07 }
+        }
+
+    ],
+    "background": [1,1,1],
+    "background_txt": "models/glacier_latlong_2.png",
+    "image_samples": 20,
+    "image_width": 400,
+    "image_height": 400,
+    "path_max_depth": 0
+}
