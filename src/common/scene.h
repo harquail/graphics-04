@@ -170,7 +170,7 @@ struct Scene {
     vec3f               background = one3f*0.2; // background color
     image3f*            background_txt = nullptr;// background texture
     vec3f               ambient = one3f*0.2;    // ambient illumination
-    
+    bool                russianRoulette = false;
     vector<Surface*>    surfaces;               // surfaces
     vector<Mesh*>       meshes;                 // meshes
     

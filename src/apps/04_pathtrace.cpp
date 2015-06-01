@@ -26,6 +26,7 @@ vec3f lookup_scaled_texture(vec3f value, image3f* texture, vec2f uv, vec3f posit
     bool mipmap = false;
     image3f* mixtexture;
 //    print(" \n");
+    
     if (mipmap){
 //        print(" \n");
         vec3f pos = normalize(position);
@@ -354,13 +355,18 @@ vec3f pathtrace_ray(Scene* scene, ray3f ray, Rng* rng, int depth) {
         // compute the material response (brdf*cos)
         auto brdfcos = max(dot(norm,brdf.first),0.0f) * eval_brdf(kd, ks, n, v, brdf.first, norm, mf);
         
-        auto theta = .3; // russian roulette
-        auto rand = rng->next_float(); // russian roulette
-        if (rand <= theta) { // russian roulette
-        c += brdfcos * pathtrace_ray(scene, ray, rng, depth+1)/ brdf.second;
-        c /= (1-theta); // russian roulette
-        } // russian roulette
-
+        if(scene->russianRoulette){
+            
+            auto theta = .3; // russian roulette
+            auto rand = rng->next_float(); // russian roulette
+            if (rand <= theta) { // russian roulette
+                c += brdfcos * pathtrace_ray(scene, ray, rng, depth+1)/ brdf.second;
+                c /= (1-theta); // russian roulette
+            } // russian roulette
+        }
+        else{
+            c += brdfcos * pathtrace_ray(scene, ray, rng, depth+1)/ brdf.second;
+        }
 
         // accumulate recersively scaled by brdf*cos/pdf
         c += brdfcos * pathtrace_ray(scene, ray2, rng, depth+1)/ brdf.second;
